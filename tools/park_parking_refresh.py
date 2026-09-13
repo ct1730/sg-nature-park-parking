@@ -164,11 +164,9 @@ def main():
     log("4/4 publishing")
     stamp = datetime.date.today().strftime("%d %b %Y")
     if git("status", "--porcelain").stdout.strip() == "":
+        # silent run: no stdout means the no_agent cron delivers nothing
         log("  nothing to publish (no file changes)")
-        log(f"RESULT {len(after)} parks · {tot} lots · unchanged")
-        print(f"🅿️ SG Nature Park Parking — checked {stamp}: no changes to the official park or "
-              f"parking data this month ({len(after)} parks · {tot} published car lots). "
-              f"Site unchanged: {SITE_URL}")
+        log(f"RESULT {len(after)} parks · {tot} lots · unchanged — staying silent")
         return
     git("add", "-A")
     git("-c", "user.name=KrisP774", "-c", "user.email=krisdipong.petpiroon@gmail.com",
