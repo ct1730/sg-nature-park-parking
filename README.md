@@ -33,6 +33,9 @@ my vehicle fit through the gantry — and if the park has no car park, where do 
   trail network for every park (total km, bike-friendly km, wheelchair-accessible km,
   staircases) drawn on the map via an "Official trail routes" toggle — green = cycling,
   grey dashed = walking.
+- **Map-only mode** — one tap ("🗺️ Map only") hides the park list, detail and footer so the
+  map fills the screen; tap "← Show list" to bring them back. Handy for a clean overview or
+  full-screen routing, and pairs with the trail-routes toggle.
 
 ## Coverage
 

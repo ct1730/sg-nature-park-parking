@@ -70,6 +70,10 @@ header.top h1 span{font-weight:400;opacity:.85}
 .basepick{position:absolute;right:12px;top:12px;z-index:600;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 9px;font-size:12.5px;box-shadow:var(--shadow)}
 .rtog{display:inline-flex;align-items:center;gap:5px;margin-left:10px;font-size:12px;cursor:pointer;white-space:nowrap}
 .rtog input{accent-color:var(--green);width:14px;height:14px;cursor:pointer;margin:0}
+.maponly .side{display:none}
+.maponly footer.foot{display:none}
+.maponly .mapwrap{flex:1}
+@media (max-width:820px){ .maponly .mapwrap{flex:1;height:auto} }
 .mk{display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
 .mk.park{background:#0f7a4d}.mk.np{background:#1d4ed8}.mk.hdb{background:#b45309}.mk.hdb.low{background:#b91c1c}
 .mk span{line-height:1}
@@ -179,6 +183,7 @@ html{-webkit-text-size-adjust:100%}
       <label><span class="lbl-lg">Vehicle height</span><span class="lbl-sm">Height (m)</span>
         <input id="vh" type="number" step="0.1" min="1" max="5" placeholder="2.2" />
       </label>
+      <button class="hbtn" id="maponly">🗺️ Map only</button>
       <button class="hbtn" id="geo"><span class="lbl-lg">📍 Use my location</span><span class="lbl-sm">📍 Location</span></button>
       <button class="hbtn" id="about"><span class="lbl-lg">Data &amp; method</span><span class="lbl-sm">ℹ️ Data</span></button>
     </div>
@@ -519,6 +524,15 @@ document.getElementById('geo').addEventListener('click',()=>{
   },()=>{document.getElementById('locnote').textContent='location denied';});
 });
 const isMobile=()=>window.matchMedia('(max-width:820px)').matches;
+const mapOnlyBtn=document.getElementById('maponly');
+function setMapOnly(on){
+  document.body.classList.toggle('maponly', on);
+  if(on) document.getElementById('detail').style.display='none';
+  mapOnlyBtn.textContent = on ? (isMobile()?'← List':'← Show list') : (isMobile()?'🗺️ Map':'🗺️ Map only');
+  setTimeout(()=>map.invalidateSize(),60);
+}
+mapOnlyBtn.addEventListener('click',()=>setMapOnly(!document.body.classList.contains('maponly')));
+setMapOnly(false);
 document.getElementById('about').addEventListener('click',()=>{
   const f=document.getElementById('foot');
   if(isMobile()) f.classList.toggle('open');
@@ -536,9 +550,10 @@ document.getElementById('legendToggle').addEventListener('click',e=>{
   if(t){me=[parseFloat(t[1]),parseFloat(t[2])];document.getElementById('locnote').textContent='location set (test)';}
   const k=h.match(/#park=([\w-]+)/);
   if(k) select(k[1]);
-  if(/#routes/.test(h)){ const tw=document.getElementById('routeToggle'); if(tw&&sel){ tw.checked=true; drawRoutes(parks.find(x=>x.slug===sel)); } }
-  if(/#legend/.test(h)) document.getElementById('legend').classList.add('open');
-  if(/#foot/.test(h)) document.getElementById('foot').classList.add('open');
+  if(/[#&]routes/.test(h)){ const tw=document.getElementById('routeToggle'); if(tw&&sel){ tw.checked=true; drawRoutes(parks.find(x=>x.slug===sel)); } }
+  if(/[#&]legend/.test(h)) document.getElementById('legend').classList.add('open');
+  if(/[#&]foot/.test(h)) document.getElementById('foot').classList.add('open');
+  if(/[#&]maponly/.test(h)) setMapOnly(true);
 })();
 /* ---------------- stats, sources, caveats ---------------- */
 const totLots=parks.reduce((s,p)=>s+(p.published_car_lots_total||0),0);
