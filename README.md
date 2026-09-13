@@ -69,13 +69,27 @@ python -m http.server 8899 --bind 127.0.0.1
 
 The page works from `file://` too, since the dataset is loaded from `data/data.js`.
 
+## Automation
+
+`tools/park_parking_refresh.py` refreshes the whole site from the official sources:
+re-downloads the three data.gov.sg datasets, re-scrapes the NParks park pages, rebuilds
+`data/parks.json` + `data/data.js`, and commits and pushes to GitHub Pages if anything
+changed. It is wired to a Hermes cron job on the 1st of each month, prints a short
+summary on stdout (progress goes to stderr), and exits non-zero on failure so the
+scheduler raises an alert. Run it by hand any time:
+
+```bash
+python tools/park_parking_refresh.py
+```
+
 ## Repository layout
 
 ```
-index.html          single-page app (Leaflet + vanilla JS, no build step)
-data/data.js        dataset as a JS global (works offline / file://)
-data/parks.json     the same dataset as plain JSON
-make_data_js.py     regenerates data/data.js from data/parks.json
+index.html                       single-page app (Leaflet + vanilla JS, no build step)
+data/data.js                     dataset as a JS global (works offline / file://)
+data/parks.json                  the same dataset as plain JSON
+make_data_js.py                  regenerates data/data.js from data/parks.json
+tools/park_parking_refresh.py    monthly refresh + publish job
 ```
 
 _Data captured 2026-09-13._
