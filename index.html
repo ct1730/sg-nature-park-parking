@@ -233,9 +233,9 @@ html{-webkit-text-size-adjust:100%}
         <div class="legend-body">
         <div><span class="sq" style="background:#0f7a4d;opacity:.20;border-color:#0f7a4d"></span> Park / reserve boundary (official)</div>
         <div><span class="dot" style="background:#0f7a4d"></span> Park marker (NParks coordinates)</div>
-        <div><span class="dot" style="background:#1d4ed8"></span> Car park lots mapped by NParks</div>
-        <div><span class="dot" style="background:#b45309"></span> HDB car park (official dataset)</div>
-        <div><span class="dot" style="background:#b91c1c"></span> HDB car park with low gantry</div>
+        <div><span class="dot" style="background:#1d4ed8"></span> Car park lots mapped by NParks (always shown)</div>
+        <div><span class="dot" style="background:#b45309"></span> HDB car park (from official HDB data, shown for the selected park)</div>
+        <div><span class="dot" style="background:#b91c1c"></span> HDB car park with a low gantry (selected park)</div>
         </div>
       </div>
     </div>
@@ -304,6 +304,17 @@ function drawRoutes(p){
   add(g.cycling,'#0e9f6e',null);
   add(g.walking,'#8b98ab','4 6');
 }
+function buildGlobalP(){
+  npLayer.clearLayers();
+  parks.forEach(p=>{
+    (p.mapped_carparks||[]).forEach(c=>{
+      L.marker([c.lat,c.lng],{icon:npIcon(c)})
+        .bindPopup(`<b>${esc(p.name)}</b> — ${c.lots} car park lot boundaries mapped by NParks<br>${c.dist_m} m from the park marker`)
+        .addTo(npLayer);
+    });
+  });
+}
+buildGlobalP();
 let meMarker=null;
 
 function parkIcon(p){
@@ -485,14 +496,11 @@ function select(slug){
   render();
 }
 function drawHdb(p){
-  hdbLayer.clearLayers(); npLayer.clearLayers();
+  hdbLayer.clearLayers();
   const mine=parseFloat(document.getElementById('vh').value)||0;
   p.nearby_hdb.slice(0,12).forEach(c=>{
     const low = mine && parseFloat(c.gantry) && parseFloat(c.gantry)<mine;
     L.marker([c.lat,c.lng],{icon:hdbIcon(low)}).bindPopup(`<b>${esc(c.addr)}</b><br>${esc(c.type)} · ${c.dist_m} m from park<br>${c.free&&c.free!=='NO'?`Free parking: ${esc(c.free)}<br>`:''}${c.gantry&&parseFloat(c.gantry)>0?`Gantry ${esc(c.gantry)} m<br>`:(c.gantry?'No gantry<br>':'')}<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}">Directions</a>`).addTo(hdbLayer);
-  });
-  (p.mapped_carparks||[]).forEach(c=>{
-    L.marker([c.lat,c.lng],{icon:npIcon(c)}).bindPopup(`<b>${c.lots} car park lots</b> mapped by NParks<br>${c.dist_m} m from the park marker`).addTo(npLayer);
   });
 }
 /* ---------------- controls ---------------- */
@@ -511,7 +519,7 @@ document.getElementById('sort').addEventListener('change',render);
 document.getElementById('vh').addEventListener('change',()=>{ if(sel) select(sel); });
 document.getElementById('dclose').addEventListener('click',()=>{
   const de=document.getElementById('detail'); de.style.display='none'; de.style.top=''; de.style.height='';
-  sel=null; hdbLayer.clearLayers(); npLayer.clearLayers(); routeLayer.clearLayers(); render();
+  sel=null; hdbLayer.clearLayers(); routeLayer.clearLayers(); render();
   setTimeout(()=>map.invalidateSize(),250);
 });
 document.getElementById('geo').addEventListener('click',()=>{
