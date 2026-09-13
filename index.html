@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SG Nature Park Parking — where to park at every Singapore nature park</title>
+<meta name="description" content="Find car park locations, official lot counts, parking rules and nearby HDB car parks for every Singapore nature park, nature reserve and Southern Ridges park. Official government data only." />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+:root{
+  --bg:#0f172a; --bg2:#111c33; --panel:#ffffff; --ink:#0b1220; --muted:#5b6b85;
+  --line:#e3e8ef; --green:#0f7a4d; --green-soft:#e6f4ec; --amber:#b45309; --amber-soft:#fdf3e3;
+  --blue:#1d4ed8; --blue-soft:#e8eeff; --red:#b91c1c; --radius:14px;
+  --shadow:0 10px 30px rgba(12,20,40,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:#f4f6fa}
+a{color:var(--blue)}
+button{font:inherit}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ---------- header ---------- */
+header.top{background:linear-gradient(100deg,#0b3d2c,#0f7a4d 55%,#12784f);color:#fff;padding:12px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+header.top h1{font-size:17px;margin:0;letter-spacing:.2px;font-weight:700}
+header.top h1 span{font-weight:400;opacity:.85}
+.tag{font-size:12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);padding:3px 9px;border-radius:999px}
+.spacer{flex:1}
+.hctl{display:flex;gap:8px;align-items:center;font-size:12.5px}
+.hctl input[type=number]{width:64px;padding:5px 7px;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff}
+.hctl input::placeholder{color:rgba(255,255,255,.7)}
+.hbtn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 11px;border-radius:9px;cursor:pointer}
+.hbtn:hover{background:rgba(255,255,255,.24)}
+.hbtn.active{background:#fff;color:#0f7a4d;border-color:#fff;font-weight:600}
+
+/* ---------- layout ---------- */
+.main{display:flex;flex:1;min-height:0}
+.side{width:392px;min-width:392px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.searchwrap{padding:12px 14px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+.searchwrap input[type=search]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;outline:none}
+.searchwrap input[type=search]:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--green-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.chip.warn.on{background:var(--amber);border-color:var(--amber)}
+.row2{display:flex;gap:8px;align-items:center;margin-top:9px;font-size:12.5px;color:var(--muted)}
+.row2 select{padding:5px 7px;border-radius:8px;border:1px solid var(--line);font-size:12.5px}
+.list{overflow:auto;flex:1;padding:8px 10px 26px}
+.count{font-size:12px;color:var(--muted);padding:4px 4px 8px}
+.card{border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px;cursor:pointer;background:#fff;transition:.12s}
+.card:hover{border-color:#b9c6da;box-shadow:var(--shadow)}
+.card.sel{border-color:var(--green);box-shadow:0 0 0 2px var(--green-soft)}
+.card h3{margin:0 0 4px;font-size:14.5px;display:flex;align-items:center;gap:7px;justify-content:space-between}
+.card h3 em{font-style:normal;font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap}
+.card .sub{font-size:12.3px;color:var(--muted);margin-bottom:6px}
+.badges{display:flex;flex-wrap:wrap;gap:5px}
+.b{font-size:11.5px;padding:2.5px 8px;border-radius:999px;border:1px solid var(--line);background:#f7f9fc;color:#3c4a60;white-space:nowrap}
+.b.ok{background:var(--green-soft);border-color:#bfe3d0;color:#0b5e3b}
+.b.no{background:var(--amber-soft);border-color:#f0dcb8;color:#8a4a06}
+.b.free{background:var(--blue-soft);border-color:#c9d8ff;color:#1b3fa8}
+.b.me{background:#eef1f6;border-color:#dfe4ec;color:#42506b}
+
+/* ---------- map ---------- */
+.mapwrap{flex:1;position:relative;min-width:0}
+#map{position:absolute;inset:0}
+.legend{position:absolute;left:12px;bottom:14px;z-index:600;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:11px;padding:9px 11px;font-size:12px;box-shadow:var(--shadow)}
+.legend div{display:flex;align-items:center;gap:7px;margin:2px 0}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.sq{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.2)}
+.basepick{position:absolute;right:12px;top:12px;z-index:600;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 9px;font-size:12.5px;box-shadow:var(--shadow)}
+.mk{display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+.mk.park{background:#0f7a4d}.mk.np{background:#1d4ed8}.mk.hdb{background:#b45309}.mk.hdb.low{background:#b91c1c}
+.mk span{line-height:1}
+
+/* ---------- detail ---------- */
+.detail{background:var(--panel);border-top:1px solid var(--line);max-height:52vh;overflow:auto;padding:0}
+.detail-head{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:11px 16px;display:flex;align-items:center;gap:10px;z-index:4}
+.detail-head h2{margin:0;font-size:16px}
+.detail-head .close{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:9px;padding:5px 10px;cursor:pointer;color:var(--muted)}
+.dbody{padding:14px 16px 26px;display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media (max-width:1000px){.dbody{grid-template-columns:1fr}}
+.box{border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+.box h4{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.callout{border-radius:11px;padding:10px 12px;font-size:13px;margin-bottom:10px}
+.callout.ok{background:var(--green-soft);border:1px solid #bfe3d0;color:#0b5e3b}
+.callout.warn{background:var(--amber-soft);border:1px solid #f0dcb8;color:#7c430a}
+table.cp{width:100%;border-collapse:collapse;font-size:13px}
+table.cp th,table.cp td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--line)}
+table.cp th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px}
+table.cp td.num{text-align:right;font-variant-numeric:tabular-nums}
+.lot{font-weight:700;color:var(--green)}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:6px 10px;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.actions a{display:inline-flex;gap:6px;align-items:center;text-decoration:none;font-size:13px;padding:7px 11px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--ink)}
+.actions a.primary{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.actions a:hover{border-color:#b9c6da}
+details.q{margin-top:8px;font-size:12.5px;color:var(--muted)}
+details.q summary{cursor:pointer}
+details.q p{background:#f7f9fc;border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin:6px 0 0}
+.hdbcard{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:7px;font-size:12.7px}
+.hdbcard b{font-size:13px}
+.hdbcard .meta{color:var(--muted);margin-top:3px}
+footer.foot{background:var(--bg);color:#c8d2e2;font-size:12.3px;padding:14px 18px;max-height:30vh;overflow:auto}
+footer.foot h4{color:#fff;margin:0 0 6px;font-size:12.5px;text-transform:uppercase;letter-spacing:.6px}
+footer.foot a{color:#93c5fd}
+footer.foot ul{margin:6px 0;padding-left:18px}
+footer.foot .cols{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
+@media (max-width:900px){.cols{grid-template-columns:1fr}}
+.pill{display:inline-block;font-size:11px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:2px 7px;border-radius:999px;margin-left:6px}
+.err{padding:14px;color:var(--red);font-size:13px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>SG Nature Park Parking <span>· official data only</span></h1>
+    <span class="tag" id="stat">loading…</span>
+    <div class="spacer"></div>
+    <div class="hctl">
+      <label>Vehicle height
+        <input id="vh" type="number" step="0.1" min="1" max="5" placeholder="e.g. 2.2" />
+      </label>
+      <button class="hbtn" id="geo">📍 Use my location</button>
+      <button class="hbtn" id="about">Data &amp; method</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside class="side">
+      <div class="searchwrap">
+        <input id="q" type="search" placeholder="Search park, area or car park address…" autocomplete="off" />
+        <div class="chips" id="chips"></div>
+        <div class="chips" id="chips2">
+          <button class="chip" data-f="has">Has in-park car park</button>
+          <button class="chip" data-f="free">Free parking</button>
+          <button class="chip" data-f="nopark">No car park published</button>
+          <button class="chip warn" data-f="hdb">HDB fallback &lt;500 m</button>
+        </div>
+        <div class="row2">
+          <label>Sort
+            <select id="sort">
+              <option value="near">Distance from me</option>
+              <option value="name">Park name</option>
+              <option value="lots">Most published car lots</option>
+              <option value="hdb">Nearest HDB car park</option>
+            </select>
+          </label>
+          <span id="locnote"></span>
+        </div>
+      </div>
+      <div class="list" id="list"></div>
+    </aside>
+
+    <div class="mapwrap">
+      <div id="map"></div>
+      <div class="basepick">
+        <label>Base map
+          <select id="base">
+            <option value="osm">OpenStreetMap</option>
+            <option value="topo">OpenTopoMap (terrain)</option>
+            <option value="hot">OSM Humanitarian</option>
+            <option value="carto">Carto Positron</option>
+          </select>
+        </label>
+      </div>
+      <div class="legend">
+        <div><span class="sq" style="background:#0f7a4d;opacity:.20;border-color:#0f7a4d"></span> Park / reserve boundary (official)</div>
+        <div><span class="dot" style="background:#0f7a4d"></span> Park marker (NParks coordinates)</div>
+        <div><span class="dot" style="background:#1d4ed8"></span> Car park lots mapped by NParks</div>
+        <div><span class="dot" style="background:#b45309"></span> HDB car park (official dataset)</div>
+        <div><span class="dot" style="background:#b91c1c"></span> HDB car park with low gantry</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail" id="detail" style="display:none">
+    <div class="detail-head">
+      <h2 id="dtitle">—</h2>
+      <span class="tag" id="dcat" style="background:#eef1f6;color:#42506b;border-color:#dfe4ec">—</span>
+      <button class="close" id="dclose">Close ✕</button>
+    </div>
+    <div class="dbody" id="dbody"></div>
+  </div>
+
+  <footer class="foot" id="foot">
+    <div class="cols">
+      <div>
+        <h4>Data sources — all official</h4>
+        <ul id="srclist"></ul>
+      </div>
+      <div>
+        <h4>Method &amp; caveats</h4>
+        <p id="caveats"></p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="data/data.js"></script>
+<script>
+const DATA = window.__SG_PARK_DATA__;
+const byId = {};
+if(!DATA){document.getElementById('list').innerHTML='<div class="err">Data file data/data.js not found. Serve this folder over HTTP (e.g. <code>python -m http.server</code>) and reload.</div>';}
+else{
+const parks = DATA.parks;
+const M = 111320, R = Math.PI/180;
+const dist = (a,b,c,d)=>Math.hypot((a-c)*M,(b-d)*M*Math.cos(a*R));
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let me=null, sel=null, filters=new Set();
+
+/* ---------------- map ---------------- */
+const bases = {
+ osm:{u:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',a:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'},
+ topo:{u:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',a:'Map data &copy; OpenStreetMap contributors, SRTM · style &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)'},
+ hot:{u:'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',a:'&copy; OpenStreetMap contributors, tiles: Humanitarian OSM Team'},
+ carto:{u:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',a:'&copy; OpenStreetMap contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}
+};
+const map = L.map('map',{zoomControl:true, scrollWheelZoom:true}).setView([1.3521,103.8198],12);
+let tile = L.tileLayer(bases.osm.u,{maxZoom:19,attribution:bases.osm.a}).addTo(map);
+document.getElementById('base').addEventListener('change',e=>{
+  const b=bases[e.target.value]; map.removeLayer(tile);
+  tile=L.tileLayer(b.u,{maxZoom:e.target.value==='topo'?17:19,attribution:b.a}).addTo(map);
+});
+const parkLayer=L.layerGroup().addTo(map), npLayer=L.layerGroup().addTo(map), hdbLayer=L.layerGroup().addTo(map);
+let meMarker=null;
+
+function parkIcon(p){
+  const big = p.category==='Nature Reserve';
+  return L.divIcon({className:'',html:`<div class="mk park" style="width:${big?30:26}px;height:${big?30:26}px"><span>${big?'🌳':'🌿'}</span></div>`,iconSize:[30,30],iconAnchor:[15,15]});
+}
+function npIcon(n){return L.divIcon({className:'',html:`<div class="mk np" style="width:24px;height:24px"><span>P</span></div>`,iconSize:[24,24],iconAnchor:[12,12]});}
+function hdbIcon(low){return L.divIcon({className:'',html:`<div class="mk hdb ${low?'low':''}" style="width:22px;height:22px"><span>H</span></div>`,iconSize:[22,22],iconAnchor:[11,11]});}
+
+parks.forEach(p=>{
+  if(p.boundary) L.geoJSON(p.boundary,{style:{color:'#0f7a4d',weight:1.4,fillColor:'#0f7a4d',fillOpacity:.16}}).addTo(parkLayer);
+  if(p.lat) L.marker([p.lat,p.lng],{icon:parkIcon(p),title:p.name})
+    .bindTooltip(`<b>${esc(p.name)}</b><br>${p.published_car_lots_total?`${p.published_car_lots_total} car lots published by NParks`:'no parking published'}`,{direction:'top'})
+    .on('click',()=>select(p.slug)).addTo(parkLayer);
+});
+
+/* ---------------- rendering ---------------- */
+function badge(t,cls){return `<span class="b ${cls||''}">${t}</span>`;}
+function parkingSummary(p){
+  const m=p.parking_meta||{};
+  if(p.published_car_lots_total){
+    const bits=[badge(`${p.published_car_lots_total} car lots (NParks)`,'ok')];
+    if(m.free) bits.push(badge('Free parking','free'));
+    if(m.paid) bits.push(badge('Payment required','me'));
+    bits.push(badge(`${p.carparks.length} car park${p.carparks.length>1?'s':''}`));
+    return bits.join('');
+  }
+  if(m.no_carpark) return badge('No car park on site','no')+ (p.nearby_hdb_count?badge(`HDB fallback ${p.nearby_hdb[0]?p.nearby_hdb[0].dist_m+' m':'','no'}`):'');
+  return badge('No parking info published','no');
+}
+function card(p){
+  const d = me&&p.lat ? `${Math.round(dist(me[0],me[1],p.lat,p.lng))} m away` : '';
+  const hdb = p.nearby_hdb_count ? `nearest HDB car park ${p.nearby_hdb[0].dist_m} m` : 'no HDB car park within 2 km';
+  return `<div class="card${sel===p.slug?' sel':''}" data-slug="${p.slug}">
+    <h3>${esc(p.name)} <em>${p.area_ha?p.area_ha+' ha':''}</em></h3>
+    <div class="sub">${esc(p.category)}${p.network?' · '+esc(p.network):''}${d?' · '+d:''}</div>
+    <div class="badges">${parkingSummary(p)}${badge(hdb,'me')}</div>
+  </div>`;
+}
+function passes(p){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  if(q){
+    const hay=(p.name+' '+(p.address||'')+' '+(p.network||'')+' '+p.category+' '+(p.nearby_hdb||[]).slice(0,4).map(c=>c.addr).join(' ')).toLowerCase();
+    if(!hay.includes(q)) return false;
+  }
+  if(filters.has('has') && !p.published_car_lots_total) return false;
+  if(filters.has('free') && !(p.parking_meta||{}).free) return false;
+  if(filters.has('nopark') && !((p.parking_meta||{}).no_carpark || !p.published_car_lots_total)) return false;
+  if(filters.has('hdb') && !(p.nearby_hdb_count && p.nearby_hdb[0].dist_m<500)) return false;
+  if(catFilter!=='All' && p.category!==catFilter) return false;
+  return true;
+}
+let catFilter='All';
+function render(){
+  const sort=document.getElementById('sort').value;
+  let l=parks.filter(passes);
+  l.sort((a,b)=>{
+    if(sort==='name') return a.name.localeCompare(b.name);
+    if(sort==='lots') return (b.published_car_lots_total||0)-(a.published_car_lots_total||0);
+    if(sort==='hdb') return ((a.nearby_hdb[0]||{dist_m:9e9}).dist_m)-((b.nearby_hdb[0]||{dist_m:9e9}).dist_m);
+    if(me) return dist(me[0],me[1],a.lat||0,a.lng||0)-dist(me[0],me[1],b.lat||0,b.lng||0);
+    return (b.published_car_lots_total||0)-(a.published_car_lots_total||0);
+  });
+  document.getElementById('list').innerHTML =
+    `<div class="count">${l.length} of ${parks.length} parks shown${me?' · distances from your location (straight line)':''}</div>`+l.map(card).join('');
+  document.querySelectorAll('.card').forEach(el=>el.addEventListener('click',()=>select(el.dataset.slug)));
+}
+/* ---------------- detail ---------------- */
+function gantryWarn(g,mine){ return mine-0.0001 >= g; }
+function hdbCard(c,mine){
+  const low = mine && parseFloat(c.gantry) && parseFloat(c.gantry) < mine;
+  const free = /^(?!NO$).+/.test(c.free||'') && (c.free||'NO')!=='NO';
+  const bits=[];
+  bits.push(badge(c.type||'—'));
+  bits.push(badge(`${c.dist_m} m straight line`,'me'));
+  if(free) bits.push(badge(`Free: ${c.free}`,'free'));
+  if(c.night&&c.night!=='NO') bits.push(badge('Night parking','ok'));
+  if(c.system) bits.push(badge(c.system));
+  if(c.gantry) bits.push(badge(parseFloat(c.gantry)>0?`Gantry ${c.gantry} m`:'No gantry', low?'no':''));
+  return `<div class="hdbcard">
+    <b>${esc(c.addr)}</b> <span class="b">${esc(c.id)}</span>
+    <div class="meta">Short-term: ${esc(c.short||'—')}${c.decks?` · ${esc(c.decks)} deck(s)`:''}</div>
+    <div class="badges" style="margin-top:5px">${bits.join('')}</div>
+    ${low?`<div class="callout warn" style="margin:7px 0 0">⚠ Gantry ${esc(c.gantry)} m — lower than your ${mine} m vehicle.</div>`:''}
+    <div class="meta" style="margin-top:6px"><a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" rel="noopener">Directions (Google)</a> · <a href="https://www.onemap.gov.sg/?lat=${c.lat}&lng=${c.lng}" target="_blank" rel="noopener">OneMap</a></div>
+  </div>`;
+}
+function select(slug){
+  sel=slug; const p=parks.find(x=>x.slug===slug);
+  document.getElementById('dtitle').textContent=p.name;
+  document.getElementById('dcat').textContent=p.category+(p.network?' · '+p.network:'');
+  const mine=parseFloat(document.getElementById('vh').value)||0;
+  let left='',right='';
+
+  /* ---- where to park ---- */
+  if(p.published_car_lots_total){
+    left+=`<div class="callout ok"><b>${p.published_car_lots_total} car lots</b> published by NParks for this park${(p.parking_meta||{}).free?' — parking is <b>free</b>':''}${(p.parking_meta||{}).paid?' — payment applies':''}.</div>`;
+  } else if((p.parking_meta||{}).no_carpark){
+    left+=`<div class="callout warn"><b>No car park on site.</b> ${p.parking_notes.length?esc(p.parking_notes.join(' ')):''}</div>`;
+  } else {
+    left+=`<div class="callout warn"><b>NParks publishes no parking details for this park.</b> Use the officially mapped car parks and HDB car parks below; check the park's official page before you drive.</div>`;
+  }
+  if(p.carparks.length){
+    left+=`<div class="box"><h4>Car parks at this park (official counts)</h4><table class="cp">
+      <tr><th>Car park</th><th class="num">Car</th><th class="num">M/cycle</th><th class="num">Handicap</th><th class="num">Bus/coach</th></tr>
+      ${p.carparks.map(c=>`<tr><td>${esc(c.name)}</td><td class="num lot">${c.car??'—'}</td><td class="num">${c.moto??'—'}</td><td class="num">${c.handicap??'—'}</td><td class="num">${c.bus??'—'}</td></tr>`).join('')}
+    </table>
+    ${((p.parking_meta||{}).hours||(p.parking_meta||{}).no_overnight)?`<div class="meta" style="margin-top:8px">${(p.parking_meta||{}).hours?`Car park hours: <b>${esc(p.parking_meta.hours)}</b>`:''}${(p.parking_meta||{}).no_overnight?` · <b>No overnight parking</b>`:''}</div>`:''}
+    ${p.parking_notes.length?`<div class="meta" style="margin-top:6px">${esc(p.parking_notes.join(' '))}</div>`:''}
+    <details class="q"><summary>Official NParks wording</summary><p>${esc(p.parking_text)}</p></details></div>`;
+  } else if(p.parking_text){
+    left+=`<div class="box"><h4>Official parking note</h4><p style="margin:0;font-size:13px">${esc(p.parking_text)}</p></div>`;
+  }
+  if(p.mapped_carparks.length){
+    left+=`<div class="box" style="margin-top:10px"><h4>Car park lots mapped by NParks nearby</h4>
+      <table class="cp"><tr><th>Distance from park marker</th><th class="num">Mapped lots</th></tr>
+      ${p.mapped_carparks.map(c=>`<tr><td>${c.dist_m} m</td><td class="num lot">${c.lots}</td></tr>`).join('')}</table>
+      <div class="meta" style="margin-top:6px">Indicative lot boundaries from NParks' “Car Park Lots” layer (data.gov.sg).</div></div>`;
+  }
+
+  /* ---- park facts ---- */
+  right+=`<div class="box"><h4>Park information (NParks)</h4><dl class="kv">
+    <dt>Opening hours</dt><dd>${esc(p.hours||'—')}</dd>
+    <dt>Size</dt><dd>${esc(p.size||(p.area_ha?p.area_ha+' ha (mapped area)':'—'))}</dd>
+    <dt>Location</dt><dd>${esc(p.address||'—')}</dd>
+    <dt>Pets</dt><dd>${esc(p.pets||'—')}</dd>
+    <dt>Nearest MRT/LRT</dt><dd>${esc(p.nearby_stations||'—')}</dd>
+    <dt>Accessibility</dt><dd>${esc(p.accessibility||'—')}</dd>
+    <dt>Coordinates</dt><dd>${p.lat?`${p.lat}, ${p.lng}`:'—'}</dd>
+  </dl>
+  <div class="actions">
+    <a class="primary" target="_blank" rel="noopener" href="https://www.onemap.gov.sg/?lat=${p.lat}&lng=${p.lng}">Official OneMap directions</a>
+    <a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}">Google Maps</a>
+    <a target="_blank" rel="noopener" href="${esc(p.official_url)}">NParks park page</a>
+  </div></div>`;
+
+  /* ---- HDB fallback ---- */
+  right+=`<div class="box" style="margin-top:10px"><h4>Nearest HDB car parks (official HDB data)</h4>
+    <div class="meta" style="margin-bottom:7px">${p.nearby_hdb_count} HDB car park${p.nearby_hdb_count===1?'':'s'} within 2 km · straight-line distance</div>
+    ${p.nearby_hdb.slice(0,8).map(c=>hdbCard(c,mine)).join('')||'<div class="meta">None within 2 km.</div>'}
+    ${p.nearby_hdb.length>8?`<div class="meta">…and ${p.nearby_hdb.length-8} more within 2 km — zoom out on the map.</div>`:''}</div>`;
+
+  document.getElementById('dbody').innerHTML = left + right;
+  document.getElementById('detail').style.display='block';
+  setTimeout(()=>map.invalidateSize(),250);
+  if(p.lat) map.flyTo([p.lat,p.lng],14,{duration:.6});
+  drawHdb(p);
+  render();
+}
+function drawHdb(p){
+  hdbLayer.clearLayers(); npLayer.clearLayers();
+  const mine=parseFloat(document.getElementById('vh').value)||0;
+  p.nearby_hdb.slice(0,12).forEach(c=>{
+    const low = mine && parseFloat(c.gantry) && parseFloat(c.gantry)<mine;
+    L.marker([c.lat,c.lng],{icon:hdbIcon(low)}).bindPopup(`<b>${esc(c.addr)}</b><br>${esc(c.type)} · ${c.dist_m} m from park<br>${c.free&&c.free!=='NO'?`Free parking: ${esc(c.free)}<br>`:''}${c.gantry&&parseFloat(c.gantry)>0?`Gantry ${esc(c.gantry)} m<br>`:(c.gantry?'No gantry<br>':'')}<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}">Directions</a>`).addTo(hdbLayer);
+  });
+  (p.mapped_carparks||[]).forEach(c=>{
+    L.marker([c.lat,c.lng],{icon:npIcon(c)}).bindPopup(`<b>${c.lots} car park lots</b> mapped by NParks<br>${c.dist_m} m from the park marker`).addTo(npLayer);
+  });
+}
+/* ---------------- controls ---------------- */
+const cats=['All',...[...new Set(parks.map(p=>p.category))]];
+document.getElementById('chips').innerHTML=cats.map((c,i)=>`<button class="chip${i===0?' on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('');
+document.querySelectorAll('#chips .chip').forEach(b=>b.addEventListener('click',()=>{
+  catFilter=b.dataset.c;
+  document.querySelectorAll('#chips .chip').forEach(x=>x.classList.toggle('on',x===b));
+  render();
+}));
+document.querySelectorAll('#chips2 .chip').forEach(b=>b.addEventListener('click',()=>{
+  const f=b.dataset.f; filters.has(f)?filters.delete(f):filters.add(f); b.classList.toggle('on'); render();
+}));
+document.getElementById('q').addEventListener('input',render);
+document.getElementById('sort').addEventListener('change',render);
+document.getElementById('vh').addEventListener('change',()=>{ if(sel) select(sel); });
+document.getElementById('dclose').addEventListener('click',()=>{
+  document.getElementById('detail').style.display='none'; sel=null; hdbLayer.clearLayers(); npLayer.clearLayers(); render();
+  setTimeout(()=>map.invalidateSize(),250);
+});
+document.getElementById('geo').addEventListener('click',()=>{
+  if(!navigator.geolocation){document.getElementById('locnote').textContent='geolocation unsupported';return;}
+  document.getElementById('locnote').textContent='locating…';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    me=[pos.coords.latitude,pos.coords.longitude];
+    document.getElementById('locnote').textContent='location set';
+    if(meMarker) map.removeLayer(meMarker);
+    meMarker=L.circleMarker(me,{radius:7,color:'#1d4ed8',weight:2,fillColor:'#fff',fillOpacity:1}).addTo(map).bindPopup('You are here');
+    map.flyTo(me,13);
+    render();
+  },()=>{document.getElementById('locnote').textContent='location denied';});
+});
+document.getElementById('about').addEventListener('click',()=>{
+  document.getElementById('foot').scrollIntoView({behavior:'smooth'});
+});
+/* deep link dev hook: #test=lat,lng or #park=slug */
+(function(){
+  const h=location.hash;
+  const t=h.match(/#test=(-?[\d.]+),(-?[\d.]+)/);
+  if(t){me=[parseFloat(t[1]),parseFloat(t[2])];document.getElementById('locnote').textContent='location set (test)';}
+  const k=h.match(/#park=([\w-]+)/);
+  if(k) select(k[1]);
+})();
+/* ---------------- stats, sources, caveats ---------------- */
+const totLots=parks.reduce((s,p)=>s+(p.published_car_lots_total||0),0);
+const withPark=parks.filter(p=>p.published_car_lots_total).length;
+const hdbs=parks.reduce((s,p)=>s+p.nearby_hdb_count,0);
+document.getElementById('stat').textContent=`${parks.length} parks · ${withPark} with published car parks · ${totLots} car lots`;
+const src=DATA.meta.sources.map(s=>`<li><a href="${s.url}" target="_blank" rel="noopener">${esc(s.name)}</a>${s.dataset?` — dataset <code>${s.dataset}</code>`:''}${s.licence?` · ${esc(s.licence)}`:''}</li>`).join('');
+document.getElementById('srclist').innerHTML=src;
+document.getElementById('caveats').innerHTML=`Car park lot counts, free/paid status and car park hours are quoted from each park's official NParks park page (captured ${DATA.meta.generated}). HDB car park locations and rules (free/night/short-term parking, gantry height, decks, parking system) come from HDB's official “Carpark Information” dataset; HDB coordinates are supplied in SVY21 and converted to WGS84. Distances shown are straight-line, not driving distance — use the OneMap link for an official route. “Car park lots mapped by NParks” is derived by grouping the official NParks lot-boundary layer and is indicative, not a capacity guarantee. Always check on-site signage.`;
+render();
+}
+</script>
+</body>
+</html>

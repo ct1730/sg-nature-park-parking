@@ -1,0 +1,11 @@
+# scratch
+*.png
+shots/
+data/pd/
+data/*.geojson
+data/hdb_carpark_raw.json
+data/osm_parking.json
+__pycache__/
+.venv/
+.DS_Store
+Thumbs.db
