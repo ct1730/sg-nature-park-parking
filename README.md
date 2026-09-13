@@ -23,6 +23,10 @@ my vehicle fit through the gantry — and if the park has no car park, where do 
 - Filters: nature reserves / nature parks / nature areas / Southern Ridges, has in-park car
   park, free parking, no car park published, HDB fallback under 500 m. Sorting by distance
   (with geolocation), name, most car lots, or nearest HDB car park.
+- **Mobile-first layout** — verified at a 390 px phone viewport: map on top with the park list
+  below, park detail opens as a full-screen panel, the lot-count table restacks into labelled
+  rows instead of overflowing, the legend collapses to a tap-to-open pill, and the data/method
+  footer becomes a bottom sheet.
 
 ## Coverage
 

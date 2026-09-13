@@ -18,7 +18,7 @@ html,body{margin:0;height:100%}
 body{font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:#f4f6fa}
 a{color:var(--blue)}
 button{font:inherit}
-.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
 
 /* ---------- header ---------- */
 header.top{background:linear-gradient(100deg,#0b3d2c,#0f7a4d 55%,#12784f);color:#fff;padding:12px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
@@ -64,7 +64,7 @@ header.top h1 span{font-weight:400;opacity:.85}
 .mapwrap{flex:1;position:relative;min-width:0}
 #map{position:absolute;inset:0}
 .legend{position:absolute;left:12px;bottom:14px;z-index:600;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:11px;padding:9px 11px;font-size:12px;box-shadow:var(--shadow)}
-.legend div{display:flex;align-items:center;gap:7px;margin:2px 0}
+.legend .legend-body>div{display:flex;align-items:center;gap:7px;margin:2px 0}
 .dot{width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
 .sq{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.2)}
 .basepick{position:absolute;right:12px;top:12px;z-index:600;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 9px;font-size:12.5px;box-shadow:var(--shadow)}
@@ -110,6 +110,60 @@ footer.foot .cols{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
 @media (max-width:900px){.cols{grid-template-columns:1fr}}
 .pill{display:inline-block;font-size:11px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:2px 7px;border-radius:999px;margin-left:6px}
 .err{padding:14px;color:var(--red);font-size:13px}
+
+/* ---------- mobile / touch layouts ---------- */
+html{-webkit-text-size-adjust:100%}
+.footclose{display:none}
+.legend-toggle{display:none}
+.lbl-sm{display:none}
+@media (max-width:820px){
+  header.top{padding:9px 11px;gap:6px}
+  header.top h1{font-size:14.5px;letter-spacing:0}
+  header.top h1 span{display:none}
+  .spacer{display:none}
+  .tag{font-size:11px;padding:2px 8px}
+  .hctl{width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .hctl::-webkit-scrollbar{display:none}
+  .hctl label{white-space:nowrap;font-size:12px;display:flex;align-items:center;gap:6px}
+  .hctl input[type=number]{width:58px;padding:7px}
+  .hbtn{padding:9px 12px;font-size:12.5px;white-space:nowrap}
+  .lbl-lg{display:none}
+  .lbl-sm{display:inline}
+  .main{flex-direction:column}
+  .mapwrap{order:-1;flex:none;height:clamp(200px,36vh,340px)}
+  .side{width:100%;min-width:0;border-right:none;flex:1;min-height:0}
+  .searchwrap{padding:9px 11px}
+  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-top:7px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;padding:9px 13px;font-size:13px}
+  .list{padding:6px 9px 22px}
+  .card{padding:12px 13px}
+  .basepick{right:8px;top:8px;font-size:11.5px;padding:5px 7px;max-width:56vw}
+  .bp-l{display:none}
+  .legend{left:8px;bottom:8px;right:auto;padding:7px 10px;font-size:11.5px;max-width:64vw}
+  .legend-toggle{display:block;background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--ink);cursor:pointer}
+  .legend .legend-body{display:none;margin-top:6px}
+  .legend.open .legend-body{display:block}
+  .legend .legend-body>div{margin:3px 0}
+  table.cp tr.hd{display:none}
+  table.cp tr{display:block;border-bottom:1px solid var(--line);padding:8px 0}
+  table.cp td{display:flex;justify-content:space-between;gap:10px;border-bottom:0;padding:2px 0}
+  table.cp td:first-child{font-weight:700;font-size:13.5px;margin-bottom:3px}
+  table.cp td:not(:first-child)::before{content:attr(data-l);color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.3px}
+  table.cp td.num{text-align:right;font-size:14px}
+  .detail{position:fixed;inset:0;z-index:1200;max-height:none;border-top:0}
+  .detail-head{padding:10px 12px}
+  .detail-head h2{font-size:15px}
+  .detail-head .close{padding:8px 11px;font-size:13px}
+  .dbody{grid-template-columns:1fr;gap:14px;padding:12px 12px calc(30px + env(safe-area-inset-bottom))}
+  footer.foot{position:fixed;inset:auto 0 0 0;z-index:1300;display:none;max-height:78vh;border-radius:14px 14px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
+  footer.foot.open{display:block}
+  footer.foot .cols{grid-template-columns:1fr;gap:14px}
+  .footclose{display:block;width:max-content;margin:0 0 10px auto;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 12px;border-radius:9px}
+}
+@media (max-width:820px) and (orientation:landscape){
+  .mapwrap{height:56vh}
+}
 </style>
 </head>
 <body>
@@ -119,11 +173,11 @@ footer.foot .cols{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
     <span class="tag" id="stat">loading…</span>
     <div class="spacer"></div>
     <div class="hctl">
-      <label>Vehicle height
-        <input id="vh" type="number" step="0.1" min="1" max="5" placeholder="e.g. 2.2" />
+      <label><span class="lbl-lg">Vehicle height</span><span class="lbl-sm">Height (m)</span>
+        <input id="vh" type="number" step="0.1" min="1" max="5" placeholder="2.2" />
       </label>
-      <button class="hbtn" id="geo">📍 Use my location</button>
-      <button class="hbtn" id="about">Data &amp; method</button>
+      <button class="hbtn" id="geo"><span class="lbl-lg">📍 Use my location</span><span class="lbl-sm">📍 Location</span></button>
+      <button class="hbtn" id="about"><span class="lbl-lg">Data &amp; method</span><span class="lbl-sm">ℹ️ Data</span></button>
     </div>
   </header>
 
@@ -156,7 +210,7 @@ footer.foot .cols{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
     <div class="mapwrap">
       <div id="map"></div>
       <div class="basepick">
-        <label>Base map
+        <label><span class="bp-l">Base map </span>
           <select id="base">
             <option value="osm">OpenStreetMap</option>
             <option value="topo">OpenTopoMap (terrain)</option>
@@ -165,12 +219,15 @@ footer.foot .cols{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
           </select>
         </label>
       </div>
-      <div class="legend">
+      <div class="legend" id="legend">
+        <button class="legend-toggle" id="legendToggle">Legend ▾</button>
+        <div class="legend-body">
         <div><span class="sq" style="background:#0f7a4d;opacity:.20;border-color:#0f7a4d"></span> Park / reserve boundary (official)</div>
         <div><span class="dot" style="background:#0f7a4d"></span> Park marker (NParks coordinates)</div>
         <div><span class="dot" style="background:#1d4ed8"></span> Car park lots mapped by NParks</div>
         <div><span class="dot" style="background:#b45309"></span> HDB car park (official dataset)</div>
         <div><span class="dot" style="background:#b91c1c"></span> HDB car park with low gantry</div>
+        </div>
       </div>
     </div>
   </div>
@@ -185,6 +242,7 @@ footer.foot .cols{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
   </div>
 
   <footer class="foot" id="foot">
+    <button class="footclose" id="footclose">Close ✕</button>
     <div class="cols">
       <div>
         <h4>Data sources — all official</h4>
@@ -329,8 +387,8 @@ function select(slug){
   }
   if(p.carparks.length){
     left+=`<div class="box"><h4>Car parks at this park (official counts)</h4><table class="cp">
-      <tr><th>Car park</th><th class="num">Car</th><th class="num">M/cycle</th><th class="num">Handicap</th><th class="num">Bus/coach</th></tr>
-      ${p.carparks.map(c=>`<tr><td>${esc(c.name)}</td><td class="num lot">${c.car??'—'}</td><td class="num">${c.moto??'—'}</td><td class="num">${c.handicap??'—'}</td><td class="num">${c.bus??'—'}</td></tr>`).join('')}
+      <tr class="hd"><th>Car park</th><th class="num">Car</th><th class="num">M/cycle</th><th class="num">Handicap</th><th class="num">Bus/coach</th></tr>
+      ${p.carparks.map(c=>`<tr><td>${esc(c.name)}</td><td data-l="Car" class="num lot">${c.car??'—'}</td><td data-l="M/cycle" class="num">${c.moto??'—'}</td><td data-l="Handicap" class="num">${c.handicap??'—'}</td><td data-l="Bus/coach" class="num">${c.bus??'—'}</td></tr>`).join('')}
     </table>
     ${((p.parking_meta||{}).hours||(p.parking_meta||{}).no_overnight)?`<div class="meta" style="margin-top:8px">${(p.parking_meta||{}).hours?`Car park hours: <b>${esc(p.parking_meta.hours)}</b>`:''}${(p.parking_meta||{}).no_overnight?` · <b>No overnight parking</b>`:''}</div>`:''}
     ${p.parking_notes.length?`<div class="meta" style="margin-top:6px">${esc(p.parking_notes.join(' '))}</div>`:''}
@@ -369,6 +427,7 @@ function select(slug){
 
   document.getElementById('dbody').innerHTML = left + right;
   document.getElementById('detail').style.display='block';
+  document.getElementById('detail').scrollTop=0;
   setTimeout(()=>map.invalidateSize(),250);
   if(p.lat) map.flyTo([p.lat,p.lng],14,{duration:.6});
   drawHdb(p);
@@ -415,8 +474,16 @@ document.getElementById('geo').addEventListener('click',()=>{
     render();
   },()=>{document.getElementById('locnote').textContent='location denied';});
 });
+const isMobile=()=>window.matchMedia('(max-width:820px)').matches;
 document.getElementById('about').addEventListener('click',()=>{
-  document.getElementById('foot').scrollIntoView({behavior:'smooth'});
+  const f=document.getElementById('foot');
+  if(isMobile()) f.classList.toggle('open');
+  else f.scrollIntoView({behavior:'smooth'});
+});
+document.getElementById('footclose').addEventListener('click',()=>document.getElementById('foot').classList.remove('open'));
+document.getElementById('legendToggle').addEventListener('click',e=>{
+  e.stopPropagation();
+  document.getElementById('legend').classList.toggle('open');
 });
 /* deep link dev hook: #test=lat,lng or #park=slug */
 (function(){
@@ -425,12 +492,20 @@ document.getElementById('about').addEventListener('click',()=>{
   if(t){me=[parseFloat(t[1]),parseFloat(t[2])];document.getElementById('locnote').textContent='location set (test)';}
   const k=h.match(/#park=([\w-]+)/);
   if(k) select(k[1]);
+  if(/#legend/.test(h)) document.getElementById('legend').classList.add('open');
+  if(/#foot/.test(h)) document.getElementById('foot').classList.add('open');
 })();
 /* ---------------- stats, sources, caveats ---------------- */
 const totLots=parks.reduce((s,p)=>s+(p.published_car_lots_total||0),0);
 const withPark=parks.filter(p=>p.published_car_lots_total).length;
 const hdbs=parks.reduce((s,p)=>s+p.nearby_hdb_count,0);
-document.getElementById('stat').textContent=`${parks.length} parks · ${withPark} with published car parks · ${totLots} car lots`;
+function setStat(){
+  document.getElementById('stat').textContent = isMobile()
+    ? `${parks.length} parks · ${totLots} car lots`
+    : `${parks.length} parks · ${withPark} with published car parks · ${totLots} car lots`;
+}
+setStat();
+let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(setStat,150);});
 const src=DATA.meta.sources.map(s=>`<li><a href="${s.url}" target="_blank" rel="noopener">${esc(s.name)}</a>${s.dataset?` — dataset <code>${s.dataset}</code>`:''}${s.licence?` · ${esc(s.licence)}`:''}</li>`).join('');
 document.getElementById('srclist').innerHTML=src;
 document.getElementById('caveats').innerHTML=`Car park lot counts, free/paid status and car park hours are quoted from each park's official NParks park page (captured ${DATA.meta.generated}). HDB car park locations and rules (free/night/short-term parking, gantry height, decks, parking system) come from HDB's official “Carpark Information” dataset; HDB coordinates are supplied in SVY21 and converted to WGS84. Distances shown are straight-line, not driving distance — use the OneMap link for an official route. “Car park lots mapped by NParks” is derived by grouping the official NParks lot-boundary layer and is indicative, not a capacity guarantee. Always check on-site signage.`;
