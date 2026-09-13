@@ -27,6 +27,12 @@ my vehicle fit through the gantry — and if the park has no car park, where do 
   below, park detail opens as a full-screen panel, the lot-count table restacks into labelled
   rows instead of overflowing, the legend collapses to a tap-to-open pill, and the data/method
   footer becomes a bottom sheet.
+- **Suggested routes (official)** — named trails and distances from each park's own NParks map
+  (e.g. Thomson's Langur 0.15 km / Ruins & Figs 1.50 km, Sungei Buloh's Coastal 1.3 km /
+  Migratory Bird 1.95 km), a one-tap **Open official park map (PDF)** link, and the official
+  trail network for every park (total km, bike-friendly km, wheelchair-accessible km,
+  staircases) drawn on the map via an "Official trail routes" toggle — green = cycling,
+  grey dashed = walking.
 
 ## Coverage
 

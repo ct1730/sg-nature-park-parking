@@ -23,7 +23,10 @@ DS = {
     "parks": "d_77d7ec97be83d44f61b85454f844382f",
     "carpark_lots": "d_d5594e4c43e838380155f05f53f58567",
     "hdb": "d_23f946fa557947f93a8043bbef41dd09",
+    "tracks": "d_306cc1018cb733346681883ee6d73054",
 }
+FILES = {"parks": "nparks_parks.geojson", "carpark_lots": "nparks_carpark_lots.geojson",
+         "tracks": "nparks_tracks.geojson"}
 
 # ---------------------------------------------------------------- re-exec in the project venv
 def ensure_deps():
@@ -78,7 +81,7 @@ def download_datasets():
             r2 = get(s3, timeout=300)
             if not r2 or len(r2.content) < 1000:
                 ok = False; log(f"  [FAIL] download {key}"); continue
-            dest = os.path.join(DATA, "nparks_parks.geojson" if key == "parks" else "nparks_carpark_lots.geojson")
+            dest = os.path.join(DATA, FILES.get(key, key + ".geojson"))
             open(dest, "wb").write(r2.content)
             log(f"  [ok] {key}: {len(r2.content)//1024} KB")
     return ok
@@ -142,7 +145,7 @@ def main():
     if not refresh_park_pages():
         log("ERROR: NParks scrape failed"); sys.exit(2)
     log("3/4 rebuilding dataset")
-    for s in ("parse_parks.py", "build_site_data.py"):
+    for s in ("parse_parks.py", "build_site_data.py", "build_routes.py"):
         ok, out = run(s)
         if not ok:
             log("ERROR: rebuild failed"); sys.exit(2)
