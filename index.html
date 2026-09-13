@@ -158,7 +158,7 @@ html{-webkit-text-size-adjust:100%}
   table.cp td:first-child{font-weight:700;font-size:13.5px;margin-bottom:3px}
   table.cp td:not(:first-child)::before{content:attr(data-l);color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.3px}
   table.cp td.num{text-align:right;font-size:14px}
-  .detail{position:fixed;inset:0;z-index:1200;max-height:none;border-top:0}
+  .detail{position:fixed;inset:auto 0 0 0;z-index:1200;height:52vh;min-height:0;max-height:76vh;border-top:0;border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -8px 30px rgba(12,20,40,.18)}
   .detail-head{padding:10px 12px}
   .detail-head h2{font-size:15px}
   .detail-head .close{padding:8px 11px;font-size:13px}
@@ -474,8 +474,10 @@ function select(slug){
     ${p.nearby_hdb.length>8?`<div class="meta">…and ${p.nearby_hdb.length-8} more within 2 km — zoom out on the map.</div>`:''}</div>`;
 
   document.getElementById('dbody').innerHTML = left + right;
-  document.getElementById('detail').style.display='block';
-  document.getElementById('detail').scrollTop=0;
+  const detailEl=document.getElementById('detail');
+  detailEl.style.display='block';
+  detailEl.scrollTop=0;
+  if(isMobile()){ const mb=document.querySelector('.mapwrap').getBoundingClientRect().bottom; detailEl.style.top=Math.round(mb)+'px'; detailEl.style.height='auto'; }
   setTimeout(()=>map.invalidateSize(),250);
   if(p.lat) map.flyTo([p.lat,p.lng],14,{duration:.6});
   drawHdb(p);
@@ -508,7 +510,8 @@ document.getElementById('q').addEventListener('input',render);
 document.getElementById('sort').addEventListener('change',render);
 document.getElementById('vh').addEventListener('change',()=>{ if(sel) select(sel); });
 document.getElementById('dclose').addEventListener('click',()=>{
-  document.getElementById('detail').style.display='none'; sel=null; hdbLayer.clearLayers(); npLayer.clearLayers(); routeLayer.clearLayers(); render();
+  const de=document.getElementById('detail'); de.style.display='none'; de.style.top=''; de.style.height='';
+  sel=null; hdbLayer.clearLayers(); npLayer.clearLayers(); routeLayer.clearLayers(); render();
   setTimeout(()=>map.invalidateSize(),250);
 });
 document.getElementById('geo').addEventListener('click',()=>{
